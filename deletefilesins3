@@ -1,0 +1,56 @@
+resource "aws_s3_bucket" "bucket" {
+  bucket = "sample-bucket"
+  acl    = "private"
+
+  lifecycle_rule {
+    id      = "oldfiles"
+    enabled = true
+
+    prefix = "oldfiles/"
+
+    tags = {
+      rule      = "log"
+      autoclean = "true"
+    }
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA" # or "ONEZONE_IA"
+    }
+
+
+    expiration {
+      days = 30
+    }
+  }
+
+  lifecycle_rule {
+    id      = "tmp"
+    prefix  = "tmp/"
+    enabled = true
+
+    expiration {
+      date = "03:00AM"
+    }
+  }
+}
+
+resource "aws_s3_bucket" "versioning_bucket" {
+  bucket = "my-versioning-bucket"
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    prefix  = "backup-<yyyy-mm-dd>, backup-2022-12-31/"
+    enabled = true
+
+    noncurrent_version_transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+
+    }
+  }
+}
